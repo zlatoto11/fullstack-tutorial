@@ -30,7 +30,13 @@ describe('[Mutation.bookTrips]', () => {
       mockContext,
     );
     expect(res).toEqual({
-      launches: [{ cursor: 'foo', id: 999 }],
+      bookings: [
+        {
+          success: true,
+          message: 'trip booked successfully',
+          launch: { cursor: 'foo', id: 999 },
+        },
+      ],
       message: 'trips booked successfully',
       success: true,
     });
@@ -41,6 +47,7 @@ describe('[Mutation.bookTrips]', () => {
 
   it('returns false if booking fails', async () => {
     bookTrips.mockReturnValueOnce([]);
+    getLaunchesByIds.mockReturnValueOnce([]);
 
     // check the resolver response
     const res = await resolvers.Mutation.bookTrips(
@@ -69,9 +76,15 @@ describe('[Mutation.cancelTrip]', () => {
       mockContext,
     );
     expect(res).toEqual({
-      success: true,
+      bookings: [
+        {
+          launch: { cursor: 'foo', id: 999 },
+          message: 'trip cancelled',
+          success: true,
+        },
+      ],
       message: 'trip cancelled',
-      launches: [{ id: 999, cursor: 'foo' }],
+      success: true,
     });
 
     // check if the dataSource was called with correct args
