@@ -31,20 +31,27 @@ module.exports = {
   },
   Mutation: {
     bookTrips: async (_, { launchIds }, { dataSources }) => {
-      const results = await dataSources.userAPI.bookTrips({ launchIds });
+      const successes = await dataSources.userAPI.bookTrips({ launchIds });
       const launches = await dataSources.launchAPI.getLaunchesByIds({
         launchIds,
       });
 
       return {
-        success: results && results.length === launchIds.length,
+        success: successes && successes.length === launchIds.length,
         message:
-          results.length === launchIds.length
+          successes.length === launchIds.length
             ? 'trips booked successfully'
-            : `the following launches couldn't be booked: ${launchIds.filter(
-                id => !results.includes(id),
-              )}`,
-        launches,
+            : 'some unexpected errors occurred',
+        bookings: launches.map(launch => {
+          const success = !!successes.find(r => r.launchId === launch.id);
+          return {
+            launch,
+            success,
+            message: success
+              ? 'trip booked successfully'
+              : 'unexpected error occurred',
+          };
+        }),
       };
     },
     cancelTrip: async (_, { launchId }, { dataSources }) => {
@@ -60,7 +67,13 @@ module.exports = {
       return {
         success: true,
         message: 'trip cancelled',
-        launches: [launch],
+        bookings: [
+          {
+            launch,
+            success: true,
+            message: 'trip cancelled',
+          },
+        ],
       };
     },
     login: async (_, { email }, { dataSources }) => {

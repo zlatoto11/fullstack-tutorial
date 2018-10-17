@@ -49,8 +49,11 @@ class UserAPI extends DataSource {
 
   async bookTrip({ launchId }) {
     const userId = this.context.user.id;
+
+    // we need to make sure the launchId is coming through as a number, not text
+    // so we use the + operator to force coersion to number
     const res = await this.store.trips.findOrCreate({
-      where: { userId, launchId },
+      where: { userId, launchId: +launchId },
     });
     return res && res.length ? res[0].get() : false;
   }

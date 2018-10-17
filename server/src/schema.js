@@ -29,7 +29,18 @@ const typeDefs = gql`
   type TripUpdateResponse {
     success: Boolean!
     message: String
-    launches: [Launch]
+    """
+    We use a LaunchBooking type here so we can represent errors more granularly
+    for bulk bookings. If one booking fails, we'd like a way to see which failed
+    while letting the others succeeed
+    """
+    bookings: [LaunchBooking]
+  }
+
+  type LaunchBooking {
+    success: Boolean!
+    message: String
+    launch: Launch
   }
 
   """
