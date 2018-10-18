@@ -45,9 +45,9 @@ describe('[Mutation.bookTrips]', () => {
     expect(bookTrips).toBeCalledWith({ launchIds: [123] });
   });
 
-  it('returns false if booking fails', async () => {
+  it('returns with error if booking fails', async () => {
     bookTrips.mockReturnValueOnce([]);
-    getLaunchesByIds.mockReturnValueOnce([]);
+    getLaunchesByIds.mockReturnValueOnce([{ id: 123 }]);
 
     // check the resolver response
     const res = await resolvers.Mutation.bookTrips(
@@ -56,8 +56,46 @@ describe('[Mutation.bookTrips]', () => {
       mockContext,
     );
 
-    expect(res.message).toBeDefined();
-    expect(res.success).toBeFalsy();
+    expect(res).toEqual({
+      bookings: [
+        {
+          launch: { id: 123 },
+          message: 'unexpected error occurred',
+          success: false,
+        },
+      ],
+      message: 'some unexpected errors occurred',
+      success: false,
+    });
+  });
+
+  it('returns mixed successes and failures', async () => {
+    bookTrips.mockReturnValueOnce([{ launchId: 123 }]);
+    getLaunchesByIds.mockReturnValueOnce([{ id: 123 }, { id: 456 }]);
+
+    // check the resolver response
+    const res = await resolvers.Mutation.bookTrips(
+      null,
+      { launchIds: [123, 456] },
+      mockContext,
+    );
+
+    expect(res).toEqual({
+      bookings: [
+        {
+          launch: { id: 123 },
+          message: 'trip booked successfully',
+          success: true,
+        },
+        {
+          launch: { id: 456 },
+          message: 'unexpected error occurred',
+          success: false,
+        },
+      ],
+      message: 'some unexpected errors occurred',
+      success: false,
+    });
   });
 });
 
